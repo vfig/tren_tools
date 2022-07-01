@@ -1,17 +1,20 @@
 extends Panel
 
-var selection:HeightmapRect = null:
+var selection:HeightmapInstance = null:
 	set=_set_selection
 
-func _set_selection(rect:HeightmapRect=null):
-	print("select ",rect," (previously ",selection,")")
-	selection = rect
-	if rect!=null:
-		%EditZMin.text = str(rect.z_range.x)
-		%EditZMax.text = str(rect.z_range.y)
+func _set_selection(inst:HeightmapInstance=null):
+	print("select ",inst," (previously ",selection,")")
+	selection = inst
+	if inst!=null:
+		%EditZMin.text = str(inst.z_range.x)
+		%EditZMax.text = str(inst.z_range.y)
+		%SelectionHandles.global_transform = inst.global_transform
+		%SelectionHandles.visible = true
 	else:
 		%EditZMin.text = ""
 		%EditZMax.text = ""
+		%SelectionHandles.visible = false
 
 func _on_open_file_pressed():
 	var dialog:FileDialog = $OpenFileDialog
@@ -33,13 +36,13 @@ func _on_open_file_file_selected(path:String):
 	print("Result: ", result)
 	var texture := ImageTexture.new()
 	texture.create_from_image(result.image)
-	var rect:HeightmapRect = HeightmapRect.new()
-	rect.texture = texture
-	rect.x_range = result.x_range
-	rect.y_range = result.y_range
-	rect.z_range = result.z_range
-	%MapPanel.add_child(rect)
-	selection = rect
+	var inst:HeightmapInstance = HeightmapInstance.new()
+	inst.height_texture = texture
+	inst.x_range = result.x_range
+	inst.y_range = result.y_range
+	inst.z_range = result.z_range
+	%MapViewport.add_child(inst)
+	selection = inst
 
 func file_read_bytes(path:String) -> Dictionary:
 	var make_result = func(error:int=FAILED, data=null) -> Dictionary:
@@ -125,24 +128,24 @@ func read_gsbg(data:PackedByteArray, path:String="(unknown path)") -> Dictionary
 func _update_z_min_from_field(field:LineEdit, force_field_valid:bool=false):
 	if selection==null:
 		return
-	var rect:HeightmapRect = selection
-	var z_range:Vector2 = rect.z_range
+	var inst:HeightmapInstance = selection
+	var z_range:Vector2 = inst.z_range
 	var value:float = field.text.to_float()
 	if not is_nan(value):
 		z_range.x = value
-		rect.z_range = z_range
+		inst.z_range = z_range
 		if force_field_valid:
 			field.text = str(value)
 
 func _update_z_max_from_field(field:LineEdit, force_field_valid:bool=false):
 	if selection==null:
 		return
-	var rect:HeightmapRect = selection
-	var z_range:Vector2 = rect.z_range
+	var inst:HeightmapInstance = selection
+	var z_range:Vector2 = inst.z_range
 	var value:float = field.text.to_float()
 	if not is_nan(value):
 		z_range.y = value
-		rect.z_range = z_range
+		inst.z_range = z_range
 		if force_field_valid:
 			field.text = str(value)
 

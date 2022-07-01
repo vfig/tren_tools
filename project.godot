@@ -9,13 +9,13 @@
 config_version=5
 
 _global_script_classes=[{
-"base": "TextureRect",
-"class": &"HeightmapRect",
+"base": "MeshInstance3D",
+"class": &"HeightmapInstance",
 "language": &"GDScript",
-"path": "res://HeightmapRect.gd"
+"path": "res://HeightmapInstance.gd"
 }]
 _global_script_class_icons={
-"HeightmapRect": ""
+"HeightmapInstance": ""
 }
 
 [application]

@@ -1,6 +1,39 @@
-[gd_scene load_steps=2 format=3 uid="uid://mxiuqwtm4abg"]
+[gd_scene load_steps=11 format=3 uid="uid://bvo2bjnl2gifb"]
 
 [ext_resource type="Script" path="res://EditTerrain.gd" id="1_kwlpe"]
+[ext_resource type="PackedScene" uid="uid://dafouou8qxa8k" path="res://SelectionHandles.tscn" id="2_7p750"]
+[ext_resource type="Script" path="res://MapViewport.gd" id="2_bi82i"]
+[ext_resource type="Shader" path="res://OrthoGridSky.gdshader" id="2_vqe1q"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5v845"]
+shader = ExtResource( "2_vqe1q" )
+shader_param/background_color = null
+shader_param/grid_major_color = null
+shader_param/grid_major_line_width_px = null
+shader_param/grid_major_spacing_m = null
+shader_param/grid_minor_color = null
+shader_param/grid_minor_line_width_px = null
+shader_param/grid_minor_spacing_m = null
+shader_param/px_per_m = null
+shader_param/viewport_center_m = null
+shader_param/viewport_size_px = null
+
+[sub_resource type="Sky" id="Sky_t4idh"]
+sky_material = SubResource( "ShaderMaterial_5v845" )
+
+[sub_resource type="Environment" id="Environment_ud4ud"]
+background_mode = 2
+sky = SubResource( "Sky_t4idh" )
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_ts4of"]
+
+[sub_resource type="Gradient" id="Gradient_d3mkn"]
+colors = PackedColorArray(0.574219, 0.0160302, 0.141416, 1, 1, 0.98956, 0.190737, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_gcj7n"]
+gradient = SubResource( "Gradient_d3mkn" )
 
 [node name="EditTerrain" type="Panel"]
 anchor_right = 1.0
@@ -28,38 +61,77 @@ minimum_size = Vector2(200, 0)
 offset_right = 700.0
 offset_bottom = 600.0
 
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HSplitContainer/MapPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+stretch = true
+
+[node name="MapViewport" type="SubViewport" parent="HSplitContainer/MapPanel/SubViewportContainer"]
+unique_name_in_owner = true
+own_world_3d = true
+handle_input_locally = false
+size = Vector2i(700, 600)
+render_target_update_mode = 4
+script = ExtResource( "2_bi82i" )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport"]
+environment = SubResource( "Environment_ud4ud" )
+
+[node name="Camera3D" type="Camera3D" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+projection = 1
+size = 10.0
+
+[node name="SelectionHandles" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport" instance=ExtResource( "2_7p750" )]
+unique_name_in_owner = true
+visible = false
+
+[node name="Temp" type="Node3D" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport/Temp"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.5)
+mesh = SubResource( "SphereMesh_ts4of" )
+skeleton = NodePath("../..")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport/Temp"]
+transform = Transform3D(0.109786, 0.993955, -1.50667e-08, -0.492301, 0.0543764, 0.868725, 0.863474, -0.0953738, 0.495295, -0.782588, 1.10268, 1.04712)
+
+[node name="Sprite3D" type="Sprite3D" parent="HSplitContainer/MapPanel/SubViewportContainer/MapViewport/Temp"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+texture = SubResource( "GradientTexture2D_gcj7n" )
+
 [node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer"]
 minimum_size = Vector2(100, 0)
-offset_left = 712.0
+offset_left = 709.0
 offset_right = 1024.0
 offset_bottom = 600.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer/ScrollContainer"]
-offset_right = 312.0
+offset_right = 315.0
 offset_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="OpenFile" type="Button" parent="HSplitContainer/ScrollContainer/VBoxContainer"]
-offset_right = 312.0
-offset_bottom = 31.0
+offset_right = 315.0
+offset_bottom = 23.0
 text = "Open..."
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/ScrollContainer/VBoxContainer"]
-offset_top = 35.0
-offset_right = 312.0
-offset_bottom = 66.0
+offset_top = 26.0
+offset_right = 315.0
+offset_bottom = 49.0
 
 [node name="EditZMin" type="LineEdit" parent="HSplitContainer/ScrollContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-offset_right = 67.0
-offset_bottom = 31.0
+offset_right = 50.0
+offset_bottom = 23.0
 
 [node name="EditZMax" type="LineEdit" parent="HSplitContainer/ScrollContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-offset_left = 71.0
-offset_right = 138.0
-offset_bottom = 31.0
+offset_left = 53.0
+offset_right = 103.0
+offset_bottom = 23.0
 
 [connection signal="pressed" from="HSplitContainer/ScrollContainer/VBoxContainer/OpenFile" to="." method="_on_open_file_pressed"]
 [connection signal="text_changed" from="HSplitContainer/ScrollContainer/VBoxContainer/HBoxContainer/EditZMin" to="." method="_on_edit_z_min_text_changed"]
