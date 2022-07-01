@@ -1,5 +1,18 @@
 extends Panel
 
+var selection:HeightmapRect = null:
+	set=_set_selection
+
+func _set_selection(rect:HeightmapRect=null):
+	print("select ",rect," (previously ",selection,")")
+	selection = rect
+	if rect!=null:
+		%EditZMin.text = str(rect.z_range.x)
+		%EditZMax.text = str(rect.z_range.y)
+	else:
+		%EditZMin.text = ""
+		%EditZMax.text = ""
+
 func _on_open_file_pressed():
 	var dialog:FileDialog = $OpenFileDialog
 	dialog.connect("file_selected", _on_open_file_file_selected)
@@ -10,17 +23,23 @@ func _on_open_file_file_selected(path:String):
 	dialog.disconnect("file_selected", _on_open_file_file_selected)
 	print("Selected files: ", path)
 	var result = file_read_bytes(path)
-	if result.ok:
-		result = read_gsbg(result.data, path)
-	if result.ok:
-		print("Result: ", result)
-		var texture := ImageTexture.new()
-		texture.create_from_image(result.image)
-		var rect:TextureRect = $TextureRect
-		rect.texture = texture
-		rect.material.set_shader_param("z_range", result.z_range)
+	if result.error:
+		print("Error: ", result.error)
 		return
-	print("Error: ", result.error)
+	result = read_gsbg(result.data, path)
+	if result.error:
+		print("Error: ", result.error)
+		return
+	print("Result: ", result)
+	var texture := ImageTexture.new()
+	texture.create_from_image(result.image)
+	var rect:HeightmapRect = HeightmapRect.new()
+	rect.texture = texture
+	rect.x_range = result.x_range
+	rect.y_range = result.y_range
+	rect.z_range = result.z_range
+	%MapPanel.add_child(rect)
+	selection = rect
 
 func file_read_bytes(path:String) -> Dictionary:
 	var make_result = func(error:int=FAILED, data=null) -> Dictionary:
@@ -102,3 +121,41 @@ func read_gsbg(data:PackedByteArray, path:String="(unknown path)") -> Dictionary
 		mipmaps=false,
 		}
 	return make_result.call(OK, image, x_min, x_max, y_min, y_max, z_min, z_max)
+
+func _update_z_min_from_field(field:LineEdit, force_field_valid:bool=false):
+	if selection==null:
+		return
+	var rect:HeightmapRect = selection
+	var z_range:Vector2 = rect.z_range
+	var value:float = field.text.to_float()
+	if not is_nan(value):
+		z_range.x = value
+		rect.z_range = z_range
+		if force_field_valid:
+			field.text = str(value)
+
+func _update_z_max_from_field(field:LineEdit, force_field_valid:bool=false):
+	if selection==null:
+		return
+	var rect:HeightmapRect = selection
+	var z_range:Vector2 = rect.z_range
+	var value:float = field.text.to_float()
+	if not is_nan(value):
+		z_range.y = value
+		rect.z_range = z_range
+		if force_field_valid:
+			field.text = str(value)
+
+func _on_edit_z_min_text_changed(new_text):
+	_update_z_min_from_field(%EditZMin)
+
+func _on_edit_z_min_text_submitted(new_text):
+	_update_z_min_from_field(%EditZMin, true)
+	%EditZMin.release_focus()
+
+func _on_edit_z_max_text_changed(new_text):
+	_update_z_max_from_field(%EditZMax)
+
+func _on_edit_z_max_text_submitted(new_text):
+	_update_z_max_from_field(%EditZMax, true)
+	%EditZMax.release_focus()

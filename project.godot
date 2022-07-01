@@ -8,6 +8,16 @@
 
 config_version=5
 
+_global_script_classes=[{
+"base": "TextureRect",
+"class": &"HeightmapRect",
+"language": &"GDScript",
+"path": "res://HeightmapRect.gd"
+}]
+_global_script_class_icons={
+"HeightmapRect": ""
+}
+
 [application]
 
 config/name="TrenTools"
